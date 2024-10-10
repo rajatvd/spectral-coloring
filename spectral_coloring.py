@@ -8,6 +8,7 @@ import numpy as np
 import networkx as nx
 from scipy.sparse import linalg
 
+import cupy
 from cupyx.scipy.sparse import linalg as cupy_linalg
 import cupyx.scipy.sparse
 
@@ -25,11 +26,9 @@ def spectral_color(image):
     # add edges
     for node in G.nodes():
         x, y = node
-        for i in range(-1, 2):
-            for j in range(-1, 2):
-                if (i, j) != (0, 0):
-                    if (x + i, y + j) in G.nodes():
-                        G.add_edge((x, y), (x + i, y + j), weight=1.0)
+        for i, j in [(1, 0), (0, 1), (-1, 0), (0, -1)]:
+            if (x + i, y + j) in G.nodes():
+                G.add_edge((x, y), (x + i, y + j), weight=1.0)
 
     S = nx.laplacian_matrix(G)
     print(S.shape)
@@ -37,10 +36,11 @@ def spectral_color(image):
     S_cu = cupyx.scipy.sparse.csr_matrix(S)
 
     # w, v = linalg.eigsh(S, k=3, which="SM")
-    w, v = cupy_linalg.eigsh(S_cu, k=10, which="SA")
+    w, v = cupy_linalg.eigsh(S_cu, k=30, which="SA")
 
     # rescale all eigenvectors to be between 0.1 and 1
 
+    v = cupy.abs(v)
     v = (v - v.min(axis=0)) / (v.max(axis=0) - v.min(axis=0))
     v = 0.1 + 0.9 * v
 
@@ -85,5 +85,5 @@ if __name__ == "__main__":
         interp = frac * b + (1 - frac) * a
         plt.figure()
         plt.axis("off")
-        plt.imshow(interp, cmap="Greens")
+        plt.imshow(1 - interp, cmap="magma")
         plt.show()

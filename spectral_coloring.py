@@ -24,7 +24,7 @@ def graph_spectrum(image, num_evecs=100):
     l = [tuple(x) for x in lnp]
     G.add_nodes_from(l)
 
-    print(len(G.nodes()))
+    print(f"{len(G.nodes())} nodes in graph")
 
     # add edges
     for node in G.nodes():
@@ -34,11 +34,11 @@ def graph_spectrum(image, num_evecs=100):
                 G.add_edge((x, y), (x + i, y + j), weight=1.0)
 
     S = nx.laplacian_matrix(G)
-    print(S.shape)
+    print(f"shape of laplacian: {S.shape}")
 
     S_cu = cupyx.scipy.sparse.csr_matrix(S)
 
-    # w, v = linalg.eigsh(S, k=3, which="SM")
+    print(f"computing {num_evecs} eigenvectors")
     w, v = cupy_linalg.eigsh(S_cu, k=num_evecs, which="SA")
 
     return lnp, v, w

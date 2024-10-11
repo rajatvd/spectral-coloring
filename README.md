@@ -9,7 +9,7 @@ Input: binary image
     - Each node is connected to active pixels in 4 orthogonal directions
 * Compute Laplacian of graph
 * Compute eigenvectors of Laplacian
-* Color 1 pixels based on eigenvectors
+* Color active pixels based on eigenvectors
 * Interpolate between eigenvectors
 
 Output: `python example.py`

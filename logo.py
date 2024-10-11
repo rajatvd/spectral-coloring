@@ -1,5 +1,5 @@
 import numpy as np
-from spectral_coloring import spectral_color
+from spectral_coloring import graph_spectrum
 import imageio
 import cairosvg
 import matplotlib
@@ -19,7 +19,7 @@ image = image[130:-210, 170:-170]
 imageio.imwrite("e.png", (image * 255).astype("uint8"))
 
 
-ii, outs_unscale, w = spectral_color(image)
+ii, outs_unscale, w = graph_spectrum(image)
 
 # rescale all eigenvectors to be between 0 and 1
 outs = outs_unscale - outs_unscale.min(axis=0)

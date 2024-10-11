@@ -6,14 +6,17 @@
 
 import numpy as np
 import networkx as nx
-from scipy.sparse import linalg
-
-import cupy
 from cupyx.scipy.sparse import linalg as cupy_linalg
 import cupyx.scipy.sparse
 
 
-def spectral_color(image):
+def graph_spectrum(image, num_evecs=100):
+    # assumes image is binary and returns eigenvectors of laplacian of image graph
+    # returns 3 things:
+    # - the list of tuples which correspond to positions of the nodes in the image
+    # - the num_evecs smallest eigenvectors of the laplacian
+    # - the eigenvalues corresponding to the eigenvectors
+
     G = nx.Graph()
 
     # add nodes
@@ -36,54 +39,6 @@ def spectral_color(image):
     S_cu = cupyx.scipy.sparse.csr_matrix(S)
 
     # w, v = linalg.eigsh(S, k=3, which="SM")
-    w, v = cupy_linalg.eigsh(S_cu, k=30, which="SA")
+    w, v = cupy_linalg.eigsh(S_cu, k=num_evecs, which="SA")
 
-    # rescale all eigenvectors to be between 0.1 and 1
-
-    v = cupy.abs(v)
-    v = (v - v.min(axis=0)) / (v.max(axis=0) - v.min(axis=0))
-    v = 0.1 + 0.9 * v
-
-    return lnp, v.get()
-
-
-if __name__ == "__main__":
-    import matplotlib.pyplot as plt
-    from gifify import gifify
-    import imageio
-
-    # image = np.array(
-    #     [
-    #         [0, 0, 1, 0, 0],
-    #         [0, 1, 1, 1, 0],
-    #         [1, 1, 1, 1, 1],
-    #         [0, 1, 1, 1, 0],
-    #         [0, 0, 1, 0, 0],
-    #     ]
-    # ).astype(np.float32)
-
-    image = imageio.imread("e.jpg")[:, :, 0]
-    image = (image < 128).astype(np.float32)
-
-    plt.figure()
-    plt.axis("off")
-    plt.imshow(image, cmap="Greens")
-    plt.savefig("e_plt.png")
-
-    ii, outs = spectral_color(image)
-    # print(out_image)
-
-    out_images = np.zeros((*image.shape, outs.shape[1]))
-    out_images[ii[:, 0], ii[:, 1]] = outs
-
-    # interpolate through all eigenvectors
-    for t in gifify(np.linspace(0, outs.shape[1] - 1, 100)[:-1]):
-        a = out_images[:, :, int(t)]
-        b = out_images[:, :, int(t) + 1]
-        frac = t - int(t)
-        print(t, frac)
-        interp = frac * b + (1 - frac) * a
-        plt.figure()
-        plt.axis("off")
-        plt.imshow(1 - interp, cmap="magma")
-        plt.show()
+    return lnp, v, w

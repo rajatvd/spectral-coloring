@@ -44,7 +44,7 @@ out_images[inv_ii[:, 0], inv_ii[:, 1]] = 0.0
 
 # make ts an array of floats from 0 to num_evecs, with every integer appearing.
 # additionally add equally spaced points between each integer equal to count
-count = 5
+count = 15
 ts = np.concatenate(
     [np.linspace(i, i + 1, count, endpoint=False) for i in range(num_evecs - 1)]
 )
